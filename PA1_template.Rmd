@@ -7,19 +7,87 @@ output:
 
 
 ## Loading and preprocessing the data
+```{r,echo=TRUE}
+if(file.exists("activity.zip")){
+    unzip("activity.zip")
+}
 
+library(data.table)
+DT <- fread('activity.csv')
+```
 
 
 ## What is mean total number of steps taken per day?
+```{R,echo=TRUE}
+DTClean <- na.omit(DT)
+sumSteps <- DTClean[,list(sumSteps=sum(steps)),by=date]
 
+hist(sumSteps$sumSteps, xlab="Sum of steps per day", main="Histogram of steps per day")
+```
 
+### Mean of total steps taken per day
+```{R,echo=TRUE}
+mean(sumSteps$sumSteps)
+```
+
+### Median of total steps taken per day
+```{R,echo=TRUE}
+median(sumSteps$sumSteps)
+```
 
 ## What is the average daily activity pattern?
+```{R,echo=TRUE}
+min<-min(DTClean$interval)
+max<-max(DTClean$interval)
+avg<-DTClean[,list(avgSteps=median(steps)), by=interval]
+ticks<-seq(min, max, 100)
+plot(avg, type='l', xaxt = "n", main="Average Daily Activity Pattern")
+axis(side = 1, at = ticks, labels = ticks, las=2)
+
+```
+
+## The interval with the maximum average steps over all days is
+```{R,echo=TRUE}
+avg[which(avgSteps==max(avgSteps)),]$interval
+```
 
 
+## Inputing missing values
+```{R,echo=TRUE}
+# number of NA rows
+sum(is.na(DT$steps))
 
-## Imputing missing values
+# fill in missing values with the median steps in the dataset
+indx<- which(is.na(DT$steps))
+DT[indx]$steps <- median(DT$steps, na.rm=TRUE)
 
+sumSteps <- DT[,list(sumSteps=sum(steps)),by=date]
 
+hist(sumSteps$sumSteps, xlab="Sum of steps per day", main="Histogram of steps per day")
+```
+
+### Mean of total steps taken per day with NAs replaced
+```{R,echo=TRUE}
+mean(sumSteps$sumSteps)
+```
+
+### Median of total steps taken per day with NAs replaced
+```{R,echo=TRUE}
+median(sumSteps$sumSteps)
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{R,echo=TRUE}
+library(chron)
+DT$weekend = factor(chron::is.weekend(DT$date), c(TRUE, FALSE), c('weekend', 'weekday'))
+
+avg<-DT[,list(avgSteps=as.double(median(steps))), by=c("weekend","interval")]
+
+library(lattice)
+
+xyplot(avgSteps~interval|weekend, data = avg, type = "l",
+   ylab="Number of Steps", xlab="Interval",
+   layout=c(1,2))
+
+```
+
