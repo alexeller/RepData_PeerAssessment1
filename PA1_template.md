@@ -52,12 +52,9 @@ median(sumSteps$sumSteps)
 ## What is the average daily activity pattern?
 
 ```r
-min<-min(DTClean$interval)
-max<-max(DTClean$interval)
-avg<-DTClean[,list(avgSteps=median(steps)), by=interval]
-ticks<-seq(min, max, 100)
-plot(avg, type='l', xaxt = "n", main="Average Daily Activity Pattern")
-axis(side = 1, at = ticks, labels = ticks, las=2)
+DTClean$datetm <- as.Date(DTClean$date)
+avg <-DTClean[,list(avg=mean(steps)),by=datetm]
+plot(avg, type='l', main="Average Daily Activity Pattern")
 ```
 
 ![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
@@ -65,11 +62,12 @@ axis(side = 1, at = ticks, labels = ticks, las=2)
 ## The interval with the maximum average steps over all days is
 
 ```r
-avg[which(avgSteps==max(avgSteps)),]$interval
+avg <-DTClean[,list(avg=mean(steps)),by=interval]
+avg[which(avg==max(avg)),]$interval
 ```
 
 ```
-## [1] 845
+## [1] 835
 ```
 
 
